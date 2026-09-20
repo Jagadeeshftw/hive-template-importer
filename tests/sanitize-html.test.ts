@@ -62,7 +62,7 @@ describe('sanitizeHtml — hostile input', () => {
 
   it('removes a javascript: href but keeps the link text', () => {
     const { html, removals } = sanitizeHtml('<a href="javascript:alert(1)">click me</a>');
-    expect(html).toBe('<a>click me</a>');
+    expect(html).toBe('<a rel="noopener noreferrer">click me</a>');
     expect(html).not.toContain('javascript');
     expect(removals).toHaveLength(1);
     expect(removals[0]).toMatchObject({ kind: 'uri', name: 'href', textKept: true });
@@ -76,13 +76,14 @@ describe('sanitizeHtml — hostile input', () => {
       'java\nscript:alert(1)',
     ]) {
       const { html } = sanitizeHtml(`<a href="${href}">x</a>`);
-      expect(html, href).toBe('<a>x</a>');
+      expect(html, href).toBe('<a rel="noopener noreferrer">x</a>');
     }
   });
 
   it('rejects data: and protocol-relative targets', () => {
-    expect(sanitizeHtml('<a href="data:text/html,<script>">x</a>').html).toBe('<a>x</a>');
-    expect(sanitizeHtml('<a href="//evil.example.com">x</a>').html).toBe('<a>x</a>');
+    const inert = '<a rel="noopener noreferrer">x</a>';
+    expect(sanitizeHtml('<a href="data:text/html,<script>">x</a>').html).toBe(inert);
+    expect(sanitizeHtml('<a href="//evil.example.com">x</a>').html).toBe(inert);
   });
 
   it('strips inline styles and event handlers from allowed tags', () => {

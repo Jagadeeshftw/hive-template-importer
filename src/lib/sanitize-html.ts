@@ -204,8 +204,10 @@ export function sanitizeHtml(
       }
     }
 
-    // Any link that still has a target leaves with its rel forced on.
-    if (tag === 'a' && typeof node.attribs.href === 'string') {
+    // Every anchor leaves with rel forced on, href or not. That is what makes
+    // an allowed target="_blank" safe, and it holds even if an href is added
+    // downstream.
+    if (tag === 'a') {
       node.attribs.rel = policy.linkRel;
     }
   }
