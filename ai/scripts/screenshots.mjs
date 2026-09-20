@@ -28,10 +28,12 @@ const ROUTES = [
 ];
 
 async function signIn(page) {
-  const email = process.env.SEED_USER_EMAIL;
-  const password = process.env.SEED_USER_PASSWORD;
+  const email = process.env.SEED_REVIEWER_1_EMAIL;
+  const password = process.env.SEED_REVIEWER_1_PASSWORD;
   if (!email || !password) {
-    throw new Error('Set SEED_USER_EMAIL and SEED_USER_PASSWORD to shoot authenticated routes.');
+    throw new Error(
+      'Set SEED_REVIEWER_1_EMAIL and SEED_REVIEWER_1_PASSWORD to shoot authenticated routes.',
+    );
   }
   await page.goto(`${BASE}/login`, { waitUntil: 'networkidle' });
   await page.fill('input[name="email"]', email);
