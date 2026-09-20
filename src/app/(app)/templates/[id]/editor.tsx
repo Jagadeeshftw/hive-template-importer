@@ -105,7 +105,7 @@ export function TemplateEditor({ template }: { template: TemplateDetail }) {
   }
 
   return (
-    <div className="flex min-h-0 flex-grow flex-col">
+    <div className="flex min-h-0 flex-grow flex-col overflow-hidden">
       <div className="flex flex-wrap items-center gap-3 border-b border-line bg-surface px-4 py-2.5 sm:px-6">
         {dirtyCount > 0 ? (
           <span className="inline-flex h-[26px] items-center gap-2 rounded-full border border-warn-line bg-warn-bg px-3 text-[12.5px] font-medium text-warn-ink">
@@ -150,8 +150,8 @@ export function TemplateEditor({ template }: { template: TemplateDetail }) {
         </p>
       ) : null}
 
-      <div className="flex min-h-0 flex-grow flex-col lg:flex-row">
-        <aside className="flex w-full shrink-0 flex-col border-b border-line bg-surface lg:w-[440px] lg:border-b-0 lg:border-r">
+      <div className="flex min-h-0 flex-grow flex-col overflow-hidden lg:flex-row">
+        <aside className="flex w-full min-h-0 shrink-0 flex-col border-b border-line bg-surface lg:w-[440px] lg:border-b-0 lg:border-r">
           <div className="border-b border-line-soft p-3">
             <label htmlFor="tree-search" className="sr-only">
               Search sections, items and comments
@@ -173,7 +173,7 @@ export function TemplateEditor({ template }: { template: TemplateDetail }) {
             </div>
           </div>
 
-          <div className="max-h-[560px] overflow-auto py-1.5 lg:max-h-none">
+          <div className="max-h-[60vh] flex-grow overflow-auto py-1.5 lg:max-h-none">
             {template.sections.map((section, sIndex) => {
               const sectionKey = key('section', section.id);
               const sectionName = drafts[sectionKey]?.name ?? section.name;
@@ -283,7 +283,7 @@ export function TemplateEditor({ template }: { template: TemplateDetail }) {
           </div>
         </aside>
 
-        <main className="min-w-0 flex-grow p-4 sm:p-6">
+        <main className="min-w-0 flex-grow overflow-auto p-4 sm:p-6">
           {selected ? (
             <CommentDetail
               comment={selected.comment}

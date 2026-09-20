@@ -20,11 +20,31 @@ const VIEWPORTS = [
 ];
 const THEMES = ['light', 'dark'];
 
-/** @type {{ name: string, path: string, auth?: boolean, waitFor?: string }[]} */
+/**
+ * Routes are resolved at run time, because the editor and report URLs contain
+ * the seeded template's id.
+ *
+ * @type {{ name: string, path: string | ((ctx: { templateId: string }) => string), auth?: boolean, waitFor?: string }[]}
+ */
 const ROUTES = [
   { name: 'login', path: '/login' },
-  { name: 'templates', path: '/templates', auth: true },
+  { name: 'templates', path: '/templates', auth: true, waitFor: 'text=InterNACHI' },
   { name: 'import', path: '/import', auth: true },
+  {
+    name: 'editor',
+    path: ({ templateId }) => `/templates/${templateId}`,
+    auth: true,
+    waitFor: 'input[aria-label^="Section name"]',
+    // The editor scrolls inside its own panels; a full-page shot would be
+    // one enormous strip of tree rather than the screen as it is used.
+    fullPage: false,
+  },
+  {
+    name: 'import-report',
+    path: ({ templateId }) => `/templates/${templateId}/report`,
+    auth: true,
+    waitFor: 'text=Import report',
+  },
 ];
 
 async function signIn(page) {
@@ -42,6 +62,18 @@ async function signIn(page) {
   await page.waitForURL(/\/templates/, { timeout: 15_000 });
 }
 
+/** Reads the seeded template's id straight off the list screen. */
+async function findSampleTemplateId(page) {
+  await page.waitForSelector('a[href^="/templates/"]', { timeout: 20_000 });
+  const href = await page
+    .locator('a[href^="/templates/"]')
+    .first()
+    .getAttribute('href');
+  const id = (href ?? '').split('/').pop() ?? '';
+  if (!id) throw new Error('Could not find a seeded template to screenshot.');
+  return id;
+}
+
 async function main() {
   await mkdir(OUT, { recursive: true });
   const browser = await chromium.launch();
@@ -57,16 +89,19 @@ async function main() {
       });
       const page = await context.newPage();
       let signedIn = false;
+      let templateId = '';
 
       for (const route of ROUTES) {
         if (route.auth && !signedIn) {
           await signIn(page);
           signedIn = true;
+          templateId = await findSampleTemplateId(page);
         }
-        await page.goto(`${BASE}${route.path}`, { waitUntil: 'networkidle' });
+        const path = typeof route.path === 'function' ? route.path({ templateId }) : route.path;
+        await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle' });
         if (route.waitFor) await page.waitForSelector(route.waitFor, { timeout: 15_000 });
         const file = `${OUT}/${route.name}--${viewport.name}--${theme}.png`;
-        await page.screenshot({ path: file, fullPage: true });
+        await page.screenshot({ path: file, fullPage: route.fullPage !== false });
         console.log(`wrote ${file}`);
         shot += 1;
       }

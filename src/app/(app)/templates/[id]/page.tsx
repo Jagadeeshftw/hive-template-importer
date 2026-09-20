@@ -25,7 +25,7 @@ export default async function TemplatePage({
   if (!template) notFound();
 
   return (
-    <div className="-mx-4 -my-5 flex min-h-0 flex-grow flex-col sm:-mx-7 sm:-my-6">
+    <div className="-mx-4 -my-5 flex h-[calc(100vh-3.5rem)] min-h-0 flex-col overflow-hidden sm:-mx-7 sm:-my-6">
       <EditorHeader template={template} />
       <TemplateEditor template={template} />
     </div>
