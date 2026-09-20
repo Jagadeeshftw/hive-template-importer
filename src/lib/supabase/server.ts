@@ -1,7 +1,7 @@
 import { cookies } from 'next/headers';
 import { createServerClient } from '@supabase/ssr';
 import { createClient as createSupabaseClient } from '@supabase/supabase-js';
-import { supabaseAnonKey, supabaseServiceRoleKey, supabaseUrl } from '@/lib/env';
+import { supabasePublishableKey, supabaseSecretKey, supabaseUrl } from '@/lib/env';
 
 /**
  * Supabase client for server components, route handlers and server actions.
@@ -10,7 +10,7 @@ import { supabaseAnonKey, supabaseServiceRoleKey, supabaseUrl } from '@/lib/env'
 export async function createClient() {
   const cookieStore = await cookies();
 
-  return createServerClient(supabaseUrl(), supabaseAnonKey(), {
+  return createServerClient(supabaseUrl(), supabasePublishableKey(), {
     cookies: {
       getAll() {
         return cookieStore.getAll();
@@ -30,11 +30,11 @@ export async function createClient() {
 }
 
 /**
- * Service-role client. Bypasses RLS, so it is only for seeding and admin
+ * Secret-key client. Bypasses RLS, so it is only for seeding and admin
  * scripts — never for a request carrying user input.
  */
 export function createAdminClient() {
-  return createSupabaseClient(supabaseUrl(), supabaseServiceRoleKey(), {
+  return createSupabaseClient(supabaseUrl(), supabaseSecretKey(), {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 }

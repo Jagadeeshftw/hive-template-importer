@@ -1,6 +1,9 @@
 /**
  * Env access in one place, so a missing value fails loudly at the call site
  * instead of surfacing as an opaque Supabase error later.
+ *
+ * These are the current-generation Supabase API keys (`sb_publishable_...` and
+ * `sb_secret_...`), not the deprecated anon/service_role JWTs.
  */
 function required(name: string, value: string | undefined): string {
   if (!value) {
@@ -15,10 +18,15 @@ export function supabaseUrl(): string {
   return required('NEXT_PUBLIC_SUPABASE_URL', process.env.NEXT_PUBLIC_SUPABASE_URL);
 }
 
-export function supabaseAnonKey(): string {
-  return required('NEXT_PUBLIC_SUPABASE_ANON_KEY', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+/** Publishable key. Safe to ship to the browser — RLS is what protects the data. */
+export function supabasePublishableKey(): string {
+  return required(
+    'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY',
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
+  );
 }
 
-export function supabaseServiceRoleKey(): string {
-  return required('SUPABASE_SERVICE_ROLE_KEY', process.env.SUPABASE_SERVICE_ROLE_KEY);
+/** Secret key. Bypasses RLS, so it must never reach the browser. */
+export function supabaseSecretKey(): string {
+  return required('SUPABASE_SECRET_KEY', process.env.SUPABASE_SECRET_KEY);
 }
