@@ -83,9 +83,44 @@ lands with the finished work.
 
 ## Hive vs Binsr
 
-_(stub — to be filled from browser findings, which are still being gathered.)_
+Full test report: [`docs/research/hive-vs-binsr-import-test.md`](docs/research/hive-vs-binsr-import-test.md)
+(manual browser test, 20 Sept 2026, Hive trial org "Hive FDE Assignment").
 
-Intended shape: what each product does with an existing template library, how
-much of a tuned template survives the move, and where the two differ on the
-things this take-home cares about — fidelity of import, visibility of what was
-dropped, and how much an inspector has to redo by hand.
+**Both are structurally exact.** Each landed 13 sections / 69 items / 392
+comments from the same export. On the thing that matters most — does the
+customer's four years of tuning survive — neither loses structure.
+
+**Binsr proves it; Hive doesn't.** Binsr shows a pre-import strategy screen,
+reports provenance counts, and leaves a receipt you can go back to. Hive gets
+the same rows into the database and then asks you to take its word for it. Same
+outcome, very different amount of trust required.
+
+**Hive maps more Spectora columns** — estimates and the recommendation service
+both survive, where Binsr drops them.
+
+**Both drop units**, and Hive silently flattens `number` answers to Text. That
+is the gap this project treats as its hard case: a `number` field that loses
+"Fahrenheit (F), Celsius (C)" has quietly stopped being a measurement.
+
+### What that informed here
+
+- **Preview before save, and a persisted import report** — taken from Binsr.
+  Nothing is written until you have seen the parsed tree, the counts and the
+  issues; afterwards the report stays with the template.
+- **Every unmapped value is reported** — the gap in both. Units and answer types
+  are preserved as structured data, and anything the importer cannot represent
+  becomes a visible `import_issue` with its raw value, rather than vanishing.
+
+### Where Phase 1 corrected the report
+
+The research file is committed as written. Three of its claims did not survive
+checking against the file, and the corrections belong here rather than as edits
+to the report:
+
+- **Cell storage is `t="str"` with `<v>` elements, not `t="inlineStr"`.** The
+  "no `sharedStrings.xml`" premise was right; the conclusion drawn from it was
+  not. Verified: 2,919 `t="str"` cells, zero `<is>` elements.
+- **Category has 90 blank rows**, not only 281×`0` and 21×`1`. The blanks are
+  structural — category is present on all 302 `defect` rows and absent on all
+  78 `info` and 12 `limit` rows.
+- **42 columns, not 31.**
