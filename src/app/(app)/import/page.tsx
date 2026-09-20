@@ -35,18 +35,21 @@ export default function ImportPage() {
               not the plain spreadsheet.
             </li>
             <li>
-              Upload the downloaded{' '}
+              Upload the downloaded spreadsheet here. Spectora names it{' '}
               <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-[11.5px]">
-                .html
-              </code>{' '}
-              file here.
+                .xls
+              </code>
+              , though the file is really XLSX.
             </li>
           </ol>
 
           <div className="mt-3.5 flex gap-2.5 rounded-md border border-warn-line bg-warn-bg p-3">
             <AlertIcon className="size-[15px] shrink-0 mt-0.5 text-warn-ink" />
             <p className="text-xs leading-relaxed text-warn-ink">
-              A file that is not a Spectora HTML Text export is rejected with an
+              &ldquo;HTML Text&rdquo; means HTML inside the comment cells of a
+              spreadsheet,
+              not an HTML document. The format is checked by reading the file,
+              not by trusting its name; anything else is rejected with an
               explanation, not a partial import.
             </p>
           </div>

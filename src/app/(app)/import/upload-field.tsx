@@ -55,7 +55,11 @@ export function UploadField() {
           <p className="text-[13px] text-muted">
             A single{' '}
             <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs">
-              .html
+              .xls
+            </code>{' '}
+            or{' '}
+            <code className="rounded bg-surface-2 px-1.5 py-0.5 font-mono text-xs">
+              .xlsx
             </code>{' '}
             file, up to {formatBytes(MAX_UPLOAD_BYTES)}
           </p>
@@ -72,7 +76,7 @@ export function UploadField() {
           id="template-file"
           name="template-file"
           type="file"
-          accept=".html,.htm,text/html"
+          accept=".xls,.xlsx,application/vnd.ms-excel,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
           onChange={(e) => accept(e.target.files?.[0])}
           className="sr-only"
         />

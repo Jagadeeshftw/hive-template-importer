@@ -1,12 +1,20 @@
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-const ALLOWED_EXTENSIONS = ['.html', '.htm'];
+
+/**
+ * Extensions the upload field will hand on. Spectora's "Export HTML Text"
+ * produces a spreadsheet whose comment cells contain HTML — and it ships it
+ * named `.xls` even though the bytes are XLSX, so both are accepted.
+ */
+const ALLOWED_EXTENSIONS = ['.xls', '.xlsx'];
 
 export type FileCheck = { ok: true } | { ok: false; reason: string };
 
 /**
- * Client-side guard on the upload field. It is a courtesy, not a security
- * boundary — the server re-checks before parsing, because anything reaching a
- * parser from a browser is untrusted.
+ * First filter only, on the filename and size.
+ *
+ * It deliberately does not decide what the file *is*: the extension on a
+ * Spectora export lies, so the real format check is content sniffing in the
+ * parser, server-side. Everything here is a courtesy to save a round trip.
  */
 export function checkUpload(file: { name: string; size: number }): FileCheck {
   const name = file.name.toLowerCase();
@@ -15,7 +23,7 @@ export function checkUpload(file: { name: string; size: number }): FileCheck {
     return {
       ok: false,
       reason:
-        'That is not an HTML file. Spectora’s "Export HTML Text" produces a .html file.',
+        'That is not a spreadsheet. Spectora’s "Export to spreadsheet → Export HTML Text" produces an .xls or .xlsx file.',
     };
   }
 

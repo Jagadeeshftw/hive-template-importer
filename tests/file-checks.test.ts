@@ -4,43 +4,50 @@ import { checkUpload, formatBytes, MAX_UPLOAD_BYTES } from '@/lib/file-checks';
 const file = (name: string, size: number) => ({ name, size });
 
 describe('checkUpload', () => {
-  it('accepts a Spectora-shaped .html export', () => {
-    expect(checkUpload(file('internachi-residential.html', 1_400_000))).toEqual({
-      ok: true,
-    });
+  it('accepts the Spectora export, which is XLSX bytes named .xls', () => {
+    expect(
+      checkUpload(file('InterNACHI Residential -2026-09-20.xls', 1_400_000)),
+    ).toEqual({ ok: true });
   });
 
-  it('accepts .htm and ignores case in the extension', () => {
-    expect(checkUpload(file('EXPORT.HTM', 2048)).ok).toBe(true);
-    expect(checkUpload(file('Export.HtMl', 2048)).ok).toBe(true);
+  it('accepts .xlsx and ignores case in the extension', () => {
+    expect(checkUpload(file('export.xlsx', 2048)).ok).toBe(true);
+    expect(checkUpload(file('EXPORT.XLS', 2048)).ok).toBe(true);
+    expect(checkUpload(file('Export.XlSx', 2048)).ok).toBe(true);
   });
 
-  it('rejects a file that is not HTML, and says what is wanted', () => {
-    const result = checkUpload(file('template.xlsx', 4096));
+  it('rejects a file that is not a spreadsheet, and says what is wanted', () => {
+    const result = checkUpload(file('template.html', 4096));
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.reason).toContain('Export HTML Text');
   });
 
-  it('rejects a name that merely contains .html without ending in it', () => {
-    expect(checkUpload(file('report.html.pdf', 4096)).ok).toBe(false);
+  it('rejects a double extension that only looks like a spreadsheet', () => {
+    expect(checkUpload(file('template.xlsx.exe', 4096)).ok).toBe(false);
+    expect(checkUpload(file('template.xls.zip', 4096)).ok).toBe(false);
   });
 
   it('rejects an empty file', () => {
-    const result = checkUpload(file('export.html', 0));
+    const result = checkUpload(file('export.xls', 0));
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.reason).toBe('That file is empty.');
   });
 
   it('accepts a file exactly on the limit and rejects one byte over', () => {
-    expect(checkUpload(file('export.html', MAX_UPLOAD_BYTES)).ok).toBe(true);
+    expect(checkUpload(file('export.xls', MAX_UPLOAD_BYTES)).ok).toBe(true);
 
-    const result = checkUpload(file('export.html', MAX_UPLOAD_BYTES + 1));
+    const result = checkUpload(file('export.xls', MAX_UPLOAD_BYTES + 1));
     expect(result.ok).toBe(false);
     if (result.ok) return;
-    // The message should name both the actual size and the limit.
     expect(result.reason).toContain('10 MB');
+  });
+
+  it('does not claim to identify the format', () => {
+    // A .xls name passes this filter whatever the bytes are. Legacy BIFF and
+    // plain-text files are rejected by the parser's content sniffing, not here.
+    expect(checkUpload(file('legacy-biff.xls', 5000)).ok).toBe(true);
   });
 });
 
