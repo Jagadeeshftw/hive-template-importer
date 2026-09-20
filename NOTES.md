@@ -12,7 +12,16 @@ Sections marked _(pending)_ are filled in as the work reaches them.
 - **Two kinds of import issue, kept separate.** `unsupported` means our importer
   cannot represent something the export contains; `empty in source` means the
   export itself carries nothing there. Conflating them would hide which side the
-  gap is on.
+  gap is on. An issue's location is written `row N · column`, so it points at a
+  cell you can open in the spreadsheet.
+- **The export is a spreadsheet, not an HTML document.** Spectora's "Export HTML
+  Text" produces a workbook whose *comment cells* contain HTML, and ships it
+  named `.xls` when the bytes are XLSX. Format is therefore decided by content
+  sniffing, never by extension — the filename is treated as a hint and nothing
+  more.
+- **Comment HTML is sanitized against an allowlist, on import and on render.**
+  Every removal is reported with its raw snippet and becomes a visible
+  `import_issue`; nothing is dropped quietly or rewritten.
 - **Current-generation Supabase API keys.** `sb_publishable_…` and `sb_secret_…`
   rather than the deprecated `anon` / `service_role` JWTs. See the README.
 - **No landing page.** `/` redirects to the template list, or to sign-in.
@@ -31,9 +40,11 @@ Known limits so far:
 
 - **Mobile is for checking, not editing.** The brief puts mobile out of scope,
   so 390 is kept readable and no further. The editor assumes a desk window.
-- **Upload ceiling is 10 MB**, `.html` / `.htm` only. The client-side check is a
-  courtesy; the server re-checks, because anything arriving from a browser is
-  untrusted.
+- **Upload ceiling is 10 MB**, `.xls` / `.xlsx` only. The extension check is a
+  courtesy filter; it deliberately does not decide what the file *is*, because
+  the Spectora export's extension lies. A true legacy BIFF `.xls`, or a
+  plain-text file wearing a spreadsheet name, is rejected by the parser's
+  content sniffing with a specific message.
 
 ## How it was verified
 
@@ -43,6 +54,10 @@ Known limits so far:
   and `/templates` redirects a signed-out visitor to `/login?next=%2Ftemplates`.
 - Screenshots in `docs/screenshots/` are generated from a running app at 1440
   and 390, in light and dark, by `ai/scripts/screenshots.mjs`.
+- The sanitizer has 22 tests, including hostile input: `<script>` elements,
+  `onerror` handlers, `javascript:` and `data:` hrefs, case and whitespace
+  obfuscation of schemes, protocol-relative targets, and a script nested inside
+  `<svg>`. Determinism is asserted directly.
 - Parser fixture tests, the copy-isolation test and the RLS cross-account test
   _(pending — they arrive with the schema and importer)_.
 
@@ -68,4 +83,9 @@ lands with the finished work.
 
 ## Hive vs Binsr
 
-_(pending — to be filled from browser findings)_
+_(stub — to be filled from browser findings, which are still being gathered.)_
+
+Intended shape: what each product does with an existing template library, how
+much of a tuned template survives the move, and where the two differ on the
+things this take-home cares about — fidelity of import, visibility of what was
+dropped, and how much an inspector has to redo by hand.
