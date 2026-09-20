@@ -159,6 +159,32 @@ export function sanitizeHtml(
       return;
     }
 
+    if (tag === 'a') {
+      const href = findAttribute(node, 'href');
+      const usable = href !== undefined && schemeAllowed(href.value, schemes);
+
+      if (!usable) {
+        const kids = $(node).contents().toArray();
+        record({
+          kind: href === undefined ? 'tag' : 'uri',
+          name: href === undefined ? 'a' : 'href',
+          path: where,
+          reason:
+            href === undefined
+              ? 'Link with no target. The link text was kept.'
+              : `Link target is not an allowed scheme (${[...schemes].join(', ')}). The link text was kept.`,
+          snippet: $.html(node),
+          textKept: kids.length > 0,
+        });
+
+        const $node = $(node);
+        for (const kid of kids) $node.before(kid);
+        $node.remove();
+        for (const kid of kids) processNode(kid, path);
+        return;
+      }
+    }
+
     sanitizeAttributes(node, tag, where);
 
     for (const child of $(node).contents().toArray()) {
@@ -191,22 +217,10 @@ export function sanitizeHtml(
         continue;
       }
 
-      if (name === 'href' && !schemeAllowed(rawValue, schemes)) {
-        record({
-          kind: 'uri',
-          name: 'href',
-          path: where,
-          reason: `Link target is not an allowed scheme (${[...schemes].join(', ')}). The link text was kept.`,
-          snippet: `href="${rawValue}"`,
-          textKept: true,
-        });
-        delete node.attribs[rawName];
-      }
     }
 
-    // Every anchor leaves with rel forced on, href or not. That is what makes
-    // an allowed target="_blank" safe, and it holds even if an href is added
-    // downstream.
+    // Every anchor that reaches here keeps a usable href, and leaves with rel
+    // forced on. That is what makes an allowed target="_blank" safe.
     if (tag === 'a') {
       node.attribs.rel = policy.linkRel;
     }
@@ -225,6 +239,17 @@ function lower(value: string): string {
 
 function isElement(node: AnyNode): node is Element {
   return node.type === 'tag' || node.type === 'script' || node.type === 'style';
+}
+
+/** Finds an attribute case-insensitively, since HTML attribute names are not. */
+function findAttribute(
+  node: Element,
+  wanted: string,
+): { name: string; value: string } | undefined {
+  for (const [name, value] of Object.entries(node.attribs)) {
+    if (name.toLowerCase() === wanted) return { name, value: value as string };
+  }
+  return undefined;
 }
 
 function isEventHandler(name: string): boolean {

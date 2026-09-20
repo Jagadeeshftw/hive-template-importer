@@ -70,6 +70,9 @@ describe('hostile HTML arriving through a real cell', () => {
     expect(html).not.toContain('evil.example.com');
     expect(html).not.toContain('onerror');
     expect(html).not.toContain('javascript:');
+    // The dangerous link is unwrapped, not left as an inert anchor.
+    expect(html).toContain('click');
+    expect((html.match(/<a /g) ?? [])).toHaveLength(1);
   });
 
   it('keeps the safe link, with target and a forced rel', () => {

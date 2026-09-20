@@ -63,10 +63,11 @@ Known limits so far:
 
 ## Known issues
 
-- **The `sb_secret_` key is rejected by the Supabase project's data plane**
-  (401 on both the auth admin API and REST), while `sb_publishable_` works.
-  Retested 30 minutes apart with the same result. The legacy `service_role` JWT
-  works immediately. This affects the seed script only; nothing user-facing.
+- **`sb_secret_` key returned 401 on REST and auth admin** (retested hours
+  apart); using the legacy `service_role` JWT under the same env var name
+  (`SUPABASE_SECRET_KEY`); server-only, never shipped to the client. The
+  `sb_publishable_` key is unaffected and is what the browser uses. Verified by
+  grepping the production build: the secret appears in no client bundle.
 
 ## Time spent
 

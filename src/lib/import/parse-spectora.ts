@@ -1,4 +1,4 @@
-import XLSX from 'xlsx';
+import * as XLSX from 'xlsx';
 import { sanitizeHtml, type SanitizePolicy } from '@/lib/sanitize-html';
 import { SPECTORA_POLICY } from './policy';
 import { assertSpectoraWorkbook, assertWorksheetPresent } from './sniff';
@@ -408,13 +408,23 @@ function reportUniformEstimates(
   });
 }
 
-/** "InterNACHI Residential -2026-09-20.xls" -> "InterNACHI Residential". */
+/**
+ * "InterNACHI Residential -2026-09-20.xls" -> "InterNACHI Residential".
+ *
+ * Separators become spaces so a slugged filename does not arrive as a name with
+ * hyphens in it, but letter case is left alone: "InterNACHI" must not be
+ * mangled into "Internachi" by a well-meaning title-caser. The result is only a
+ * default — the user edits it on the preview screen before saving.
+ */
 export function templateNameFrom(filename: string | undefined, fallback: string): string {
   if (!filename) return fallback;
 
-  const withoutExtension = filename.replace(/\.[^.]+$/, '');
-  const withoutDate = withoutExtension.replace(/\s*-?\s*\d{4}-\d{2}-\d{2}\s*$/, '');
-  const cleaned = withoutDate.replace(/[-_]+$/, '').trim();
+  const cleaned = filename
+    .replace(/\.[^.]+$/, '')
+    .replace(/\s*-?\s*\d{4}-\d{2}-\d{2}\s*$/, '')
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 
   return cleaned || fallback;
 }

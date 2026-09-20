@@ -310,6 +310,11 @@ describe('template name', () => {
     expect(templateNameFrom('plain.xlsx', 'Sheet1')).toBe('plain');
     expect(templateNameFrom(undefined, 'Sheet1')).toBe('Sheet1');
     expect(templateNameFrom('2026-01-02.xlsx', 'Sheet1')).toBe('Sheet1');
+    // A slugged filename loses its separators but keeps its letter case.
+    expect(templateNameFrom('internachi-residential-2026-09-20.xls', 'Sheet1')).toBe(
+      'internachi residential',
+    );
+    expect(templateNameFrom('Four_Point_Inspection.xlsx', 'Sheet1')).toBe('Four Point Inspection');
   });
 });
 
