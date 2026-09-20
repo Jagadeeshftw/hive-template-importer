@@ -141,6 +141,38 @@ Two bugs the tests caught, both fixed: a slugged filename defaulted the template
 name to `internachi-residential`, and the editor page grew to 36,000 px because
 the 392-row tree stretched the page instead of scrolling inside its panel.
 
+## What I'd still call a risk
+
+Nothing here is broken. These are the places I would look first if something
+went wrong later, or the things I would fix given another day.
+
+- **The service-role key is a deprecated credential.** The new `sb_secret_` key
+  returns 401 against this project, so the server uses the old `service_role`
+  JWT under the same env var name. It works, it never reaches the browser, and
+  the build was grepped to prove it — but the README recommends the new keys
+  and the code is using the old one. When Supabase fixes the key it is a
+  one-line change.
+- **Reset sample reads the export off the deployment's filesystem.** Both the
+  seed and the reset action open `samples/spectora/…` at run time. That works on
+  Vercel because the file is in the repo, but it ties a button in the UI to the
+  filesystem of whatever is serving it. If the file ever moves, or a build
+  excludes it, reset fails when a user clicks it rather than when the build runs.
+- **The editor loads the entire template into one client component.** All 392
+  comments, all their options, and every pending edit live in React state. It is
+  quick at this size and was checked in the browser, but a template several
+  times larger would need the tree windowed.
+- **The low-severity category path has never seen real data.** No stock
+  Spectora template appears to emit `-1`, so that branch is exercised by a
+  fixture I wrote myself. If Spectora emits low-severity rows in some shape I
+  have not anticipated, nothing here would have caught it.
+- **Import runs store the original file in Postgres.** 55 KB per run today, but
+  a 10 MB upload means 10 MB in a `bytea` column, and nothing prunes old runs.
+  Object storage is the right home for this if imports become routine.
+- **Two dependency warnings are left alone.** `@types/node` is pinned to 24
+  against a peer wanting 24 or newer, and Vitest 5 warns that its config loader
+  is changing. Neither affects behaviour; both were left rather than churned
+  close to the deadline.
+
 ## Time spent
 
 Roughly 6 hours end to end. About a third of that went on Phase 1 — reading the
